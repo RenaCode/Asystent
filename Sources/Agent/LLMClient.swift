@@ -19,9 +19,44 @@ enum ClaudeDefaults {
     static let fallbackBeta = "server-side-fallback-2026-07-01"
 }
 
+/// Błąd HTTP od Anthropic albo proxy. `errorDescription` widzi użytkownik: co się stało i co zrobić,
+/// bez surowego JSON-a (kody i typy błędów: https://docs.anthropic.com/en/api/errors).
 struct LLMHTTPError: LocalizedError {
     let service: String, status: Int, body: String
-    var errorDescription: String? { "\(service) \(status): \(body.prefix(200))" }
+
+    var errorDescription: String? {
+        let isAnthropic = service == "Anthropic"
+        switch status {
+        case 401:
+            return isAnthropic
+                ? String(localized: "Anthropic rejected the API key. Check or replace it in Settings.")
+                : String(localized: "The proxy rejected the app token (APP_TOKEN in Config.local.xcconfig).")
+        case 402:
+            return String(localized: "Your Anthropic credit balance is too low. Add credits in the Anthropic Console.")
+        case 400 where body.localizedCaseInsensitiveContains("credit balance"):
+            return String(localized: "Your Anthropic credit balance is too low. Add credits in the Anthropic Console.")
+        case 403:
+            return String(localized: "This API key has no permission for this request. Check the key's workspace and limits in the Anthropic Console.")
+        case 429:
+            return String(localized: "Too many requests. Wait a moment and try again.")
+        case 500, 502, 503, 504, 529:
+            return String(localized: "\(service) is temporarily unavailable or overloaded (\(status)). Please try again in a moment.")
+        default:
+            return String(localized: "\(service) error \(status): \(apiMessage)")
+        }
+    }
+
+    /// Tekst błędu z odpowiedzi: Anthropic `{"type":"error","error":{"type":…,"message":…}}`,
+    /// proxy (`proxy/server.js`) `{"error":"…"}`; inna treść — skrócona.
+    var apiMessage: String {
+        struct Anthropic: Decodable { struct Detail: Decodable { let message: String }; let error: Detail }
+        struct Proxy: Decodable { let error: String }
+        let data = Data(body.utf8)
+        let text = (try? JSONDecoder().decode(Anthropic.self, from: data))?.error.message
+            ?? (try? JSONDecoder().decode(Proxy.self, from: data))?.error
+            ?? body
+        return String(text.prefix(200))
+    }
 }
 
 /// Wspólna obsługa odpowiedzi HTTP. `URLSession` wstrzykiwalne w testach.
