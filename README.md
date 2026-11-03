@@ -87,4 +87,4 @@ One file per tool implementing `AssistantTool` (JSON Schema + `run`), registered
 from `confirmationQuestion(for:)` — the agent loop will not run it without the user's confirmation.
 
 ## License
-Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+MIT — see [LICENSE](LICENSE).

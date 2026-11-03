@@ -30,7 +30,7 @@ wywołanie → mowa (pl-PL) → Claude (tool use) → akcja na telefonie → odp
 5. Faza 2: streaming SSE z proxy + TTS zdanie po zdaniu (największy zysk na odczuwalnym lagu).
 6. Faza 3: routing modeli (`claude-haiku-5-5` dla prostych komend, `claude-opus-5-5` dla złożonych), pamięć rozmowy.
 
-## Open source (Apache-2.0)
+## Open source (MIT)
 - Projekt jest publiczny: zero sekretów, IP, bundle ID i Team ID w repo (`Config.xcconfig` → `Config.local.xcconfig` w `.gitignore`).
 - Dodaj tryb **BYO key**: użytkownik wkleja własny klucz Anthropic w Ustawieniach, klucz trafia do Keychain,
   a apka woła `api.anthropic.com` bezpośrednio. Proxy zostaje opcją dla self-hostingu.
