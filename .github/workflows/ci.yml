@@ -30,6 +30,21 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: install XcodeGen
         run: brew install xcodegen
+      # The Xcode project is not in the repo; plain `xcodegen generate` must give the App Store variant,
+      # also right after a local build (Config/Asystent.entitlements and Config/Info.plist stay on disk).
+      # The local variant is the positive control.
+      - name: default generated project is the App Store variant
+        run: |
+          if git ls-files | grep -q '\.xcodeproj/'; then echo "Asystent.xcodeproj is committed"; exit 1; fi
+          has_homekit() {
+            grep -q -e HOMEKIT_ENABLED -e com.apple.developer.homekit -e Asystent.entitlements \
+              Asystent.xcodeproj/project.pbxproj && return 0
+            plutil -p Config/Info.plist | grep -q NSHomeKitUsageDescription
+          }
+          xcodegen generate --spec project-local.yml
+          has_homekit || { echo "positive control failed: local project has no HomeKit"; exit 1; }
+          xcodegen generate
+          if has_homekit; then echo "default xcodegen generate gives a project with HomeKit"; exit 1; fi
       - name: build App Store variant (project.yml)
         run: |
           xcodegen generate

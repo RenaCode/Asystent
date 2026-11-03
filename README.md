@@ -94,7 +94,10 @@ Keep `NSHomeKitUsageDescription` (and `NSLocalNetworkUsageDescription`) out of `
 the catalog is shared, so a translation there ends up in the App Store build's `InfoPlist.strings`. Xcode may add
 the keys back after a local-variant build in the IDE; do not commit them (CI and `StoreBuildTests` catch it).
 
-Before archiving for the App Store, keep `PROXY_URL` and `APP_TOKEN` empty and replace the privacy policy
+Archive for the App Store only from the App Store variant: run plain `xcodegen generate` (no `--spec`) right
+before archiving, also after working on the local variant. The Xcode project is generated and git-ignored, never
+committed; CI checks that plain `xcodegen generate` gives a project without HomeKit (no `HOMEKIT_ENABLED`, no
+HomeKit entitlement, no `NSHomeKitUsageDescription`). Before archiving, also keep `PROXY_URL` and `APP_TOKEN` empty and replace the privacy policy
 placeholder in `Sources/Settings/AppLinks.swift`.
 
 ## Triggers
