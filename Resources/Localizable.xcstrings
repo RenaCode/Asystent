@@ -1,0 +1,395 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "**%@:** %@": {
+      "shouldTranslate": false
+    },
+    "Add your Anthropic API key in Settings.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj swój klucz API Anthropic w Ustawieniach."
+          }
+        }
+      }
+    },
+    "Anthropic API key": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klucz API Anthropic"
+          }
+        }
+      }
+    },
+    "Ask": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapytaj"
+          }
+        }
+      }
+    },
+    "Ask Asystent": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapytaj Asystenta"
+          }
+        }
+      }
+    },
+    "Assistant": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asystent"
+          }
+        }
+      }
+    },
+    "Asystent": {
+      "shouldTranslate": false
+    },
+    "Backend": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połączenie"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anuluj"
+          }
+        }
+      }
+    },
+    "Current time": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualny czas"
+          }
+        }
+      }
+    },
+    "Done.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gotowe."
+          }
+        }
+      }
+    },
+    "Key saved — paste to replace": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klucz zapisany — wklej nowy, by zastąpić"
+          }
+        }
+      }
+    },
+    "Listening…": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Słucham…"
+          }
+        }
+      }
+    },
+    "Microphone or speech recognition permission is missing.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak zgody na mikrofon lub rozpoznawanie mowy."
+          }
+        }
+      }
+    },
+    "No": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie"
+          }
+        }
+      }
+    },
+    "Opens Asystent and starts listening right away.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwiera Asystenta i od razu zaczyna słuchać."
+          }
+        }
+      }
+    },
+    "Own API key": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Własny klucz API"
+          }
+        }
+      }
+    },
+    "Proxy is not configured (PROXY_URL and APP_TOKEN in Config.local.xcconfig).": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proxy nie jest skonfigurowane (PROXY_URL i APP_TOKEN w Config.local.xcconfig)."
+          }
+        }
+      }
+    },
+    "Remove key": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuń klucz"
+          }
+        }
+      }
+    },
+    "Requests go straight from this iPhone to api.anthropic.com and are billed to your key.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapytania idą prosto z tego iPhone’a do api.anthropic.com i są rozliczane na Twój klucz."
+          }
+        }
+      }
+    },
+    "Requests go to the proxy set in Config.local.xcconfig at build time.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapytania idą do proxy ustawionego w Config.local.xcconfig podczas budowania."
+          }
+        }
+      }
+    },
+    "Reset": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Od nowa"
+          }
+        }
+      }
+    },
+    "Run the shortcut “%@”?": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uruchomić skrót „%@”?"
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz"
+          }
+        }
+      }
+    },
+    "Self-hosted proxy": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Własne proxy"
+          }
+        }
+      }
+    },
+    "Send": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ustawienia"
+          }
+        }
+      }
+    },
+    "Sorry, I can't help with that.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przepraszam, w tym nie mogę pomóc."
+          }
+        }
+      }
+    },
+    "Sorry, I couldn't finish this task.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przepraszam, nie udało mi się dokończyć tego zadania."
+          }
+        }
+      }
+    },
+    "Sorry, my answer got cut off. Please try again.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przepraszam, moja odpowiedź została ucięta. Spróbuj jeszcze raz."
+          }
+        }
+      }
+    },
+    "Speech recognition is unavailable for this language.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpoznawanie mowy w tym języku jest niedostępne."
+          }
+        }
+      }
+    },
+    "Start listening": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zacznij słuchać"
+          }
+        }
+      }
+    },
+    "Start talking to Asystent.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zacznij mówić do Asystenta."
+          }
+        }
+      }
+    },
+    "Stop listening": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przestań słuchać"
+          }
+        }
+      }
+    },
+    "Stored only in this device's Keychain. Create a key at console.anthropic.com.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przechowywany tylko w pęku kluczy tego urządzenia. Klucz utworzysz na console.anthropic.com."
+          }
+        }
+      }
+    },
+    "The model returned an invalid response.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model zwrócił niepoprawną odpowiedź."
+          }
+        }
+      }
+    },
+    "Type a command": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napisz polecenie"
+          }
+        }
+      }
+    },
+    "Unexpected model stop reason: %@": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieoczekiwany powód zakończenia odpowiedzi modelu: %@"
+          }
+        }
+      }
+    },
+    "Yes": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tak"
+          }
+        }
+      }
+    },
+    "You": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ty"
+          }
+        }
+      }
+    },
+    "sk-ant-…": {
+      "shouldTranslate": false
+    }
+  },
+  "version": "1.0"
+}

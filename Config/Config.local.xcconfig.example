@@ -1,0 +1,8 @@
+// Skopiuj do Config/Config.local.xcconfig (plik jest w .gitignore) i uzupełnij.
+ASYSTENT_BUNDLE_ID = com.yourname.asystent
+DEVELOPMENT_TEAM = YOURTEAMID
+
+// Opcjonalnie: self-hosted proxy (proxy/). "//" w xcconfig to komentarz, stąd $().
+// PROXY_URL = http:/$()/<mac-lan-ip>:8787
+// Musi być równy APP_TOKEN w proxy/.env (np. `openssl rand -hex 32`).
+// APP_TOKEN =

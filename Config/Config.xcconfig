@@ -1,0 +1,11 @@
+// Wartości domyślne — bezpieczne do publikacji. Własne ustawienia (bundle ID, Team,
+// adres i token proxy) wpisz w Config.local.xcconfig (jest w .gitignore), wzór:
+// Config.local.xcconfig.example.
+ASYSTENT_BUNDLE_ID = com.example.asystent
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic
+// Puste = tryb proxy wyłączony; apka używa klucza z Ustawień (BYO key).
+PROXY_URL =
+APP_TOKEN =
+
+#include? "Config.local.xcconfig"

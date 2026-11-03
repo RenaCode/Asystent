@@ -1,0 +1,86 @@
+name: Asystent
+options:
+  bundleIdPrefix: com.example.asystent
+  developmentLanguage: en
+  deploymentTarget:
+    iOS: "18.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+# Bundle ID, Team i adres proxy — w Config/Config.local.xcconfig (poza repo).
+configFiles:
+  Debug: Config/Config.xcconfig
+  Release: Config/Config.xcconfig
+targets:
+  Asystent:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+      - path: Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ASYSTENT_BUNDLE_ID)
+        TARGETED_DEVICE_FAMILY: "1"
+    info:
+      path: Config/Info.plist
+      properties:
+        CFBundleDisplayName: Asystent
+        PROXY_URL: $(PROXY_URL)
+        APP_TOKEN: $(APP_TOKEN)
+        UILaunchScreen: {}
+        NSMicrophoneUsageDescription: Asystent listens to your voice commands.
+        NSSpeechRecognitionUsageDescription: Speech recognition turns your commands into text.
+        NSCalendarsFullAccessUsageDescription: Asystent adds and reads events in your calendar.
+        NSRemindersFullAccessUsageDescription: Asystent creates reminders.
+        NSHomeKitUsageDescription: Asystent controls your smart home accessories.
+        # Tylko dla self-hosted proxy w sieci domowej (http na adres LAN); internet nadal wymaga HTTPS.
+        NSLocalNetworkUsageDescription: Asystent connects to your self-hosted proxy on the local network.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        LSApplicationQueriesSchemes: [shortcuts]
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [asystent]
+    entitlements:
+      path: Config/Asystent.entitlements
+      properties:
+        com.apple.developer.homekit: true
+    dependencies:
+      - target: AsystentControls
+    scheme:
+      testTargets:
+        - AsystentTests
+      commandLineArguments:
+        "-mute": true
+  AsystentControls:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Controls
+      - path: Sources/Intents/StartListeningIntent.swift
+      - path: Resources/Localizable.xcstrings
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ASYSTENT_BUNDLE_ID).controls
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) WIDGET_EXTENSION
+        TARGETED_DEVICE_FAMILY: "1"
+    info:
+      path: Config/Controls-Info.plist
+      properties:
+        CFBundleDisplayName: Asystent
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+  AsystentTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Tests/AsystentTests
+    dependencies:
+      - target: Asystent
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ASYSTENT_BUNDLE_ID).tests
+        GENERATE_INFOPLIST_FILE: YES

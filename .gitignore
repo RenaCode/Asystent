@@ -1,0 +1,14 @@
+/Config/Config.local.xcconfig
+/proxy/.env
+/proxy/node_modules/
+*.xcodeproj/
+/Config/Info.plist
+/Config/Controls-Info.plist
+/Config/Asystent.entitlements
+DerivedData/
+/.build/
+/.swiftpm/
+*.xcresult
+.DS_Store
+# globalny gitignore wyklucza lockfile — tutaj go chcemy (npm ci w Dockerfile)
+!/proxy/package-lock.json

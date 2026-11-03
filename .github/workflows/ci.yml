@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  agent-core:
+    name: Agent core (swift test)
+    # GitHub-hosted runners only: this repository is public, so a self-hosted runner
+    # would execute code from pull requests opened by forks.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: swift test
+        run: swift test
+
+  ios-build:
+    name: iOS app (simulator build)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: install XcodeGen
+        run: brew install xcodegen
+      - name: generate project
+        run: xcodegen generate
+      - name: build
+        run: |
+          xcodebuild build-for-testing \
+            -project Asystent.xcodeproj -scheme Asystent \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+
+  proxy:
+    name: Proxy (npm test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: proxy
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm audit --audit-level=high

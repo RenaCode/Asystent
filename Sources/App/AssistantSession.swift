@@ -1,0 +1,113 @@
+import Foundation
+import Observation
+
+/// Stan jednej rozmowy: słuchanie → agent → mówienie.
+@MainActor
+@Observable
+final class AssistantSession: ActionConfirmer {
+    static let shared = AssistantSession()
+
+    enum Phase: Equatable { case idle, listening, thinking, speaking, confirming(String), error(String) }
+
+    struct Line: Identifiable {
+        enum Role { case user, assistant }
+        let id = UUID(); let role: Role; let text: String
+    }
+
+    var phase: Phase = .idle
+    var transcript = ""
+    var lines: [Line] = []
+
+    private let recognizer = SpeechRecognizer()
+    private let speaker = Speaker()
+    @ObservationIgnored private var agent: AgentLoop!
+    @ObservationIgnored private var pendingConfirmation: CheckedContinuation<Bool, Never>?
+    @ObservationIgnored private var confirmationTimeout: Task<Void, Never>?
+
+    init() { reloadSettings() }
+
+    /// Po zmianie trybu/klucza w Ustawieniach zaczynamy nową rozmowę z nowym klientem.
+    func reloadSettings() {
+        agent = AgentLoop(client: AssistantSettings().makeClient(), registry: .default, confirmer: self)
+        lines.removeAll()
+        phase = .idle
+    }
+
+    func startListening() async {
+        guard phase != .listening, phase != .thinking else { return }
+        speaker.stop()
+        transcript = ""
+        phase = .listening
+        do {
+            try await recognizer.requestAuthorization()
+            try recognizer.start { [weak self] partial in
+                Task { @MainActor in self?.transcript = partial }
+            }
+        } catch {
+            phase = .error(error.localizedDescription)
+        }
+    }
+
+    func stopListeningAndSend() async {
+        let text = recognizer.stop().trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { phase = .idle; return }
+        await send(text)
+    }
+
+    func send(_ text: String) async {
+        guard phase != .thinking else { return }
+        lines.append(.init(role: .user, text: text))
+        phase = .thinking
+        do {
+            let reply = try await agent.run(userText: text)
+            lines.append(.init(role: .assistant, text: reply))
+            phase = .speaking
+            await speaker.speak(reply)
+            phase = .idle
+        } catch {
+            phase = .error(error.localizedDescription)
+        }
+    }
+
+    func reset() { agent.reset(); lines.removeAll(); phase = .idle }
+
+    // MARK: - Potwierdzenie akcji destrukcyjnych
+
+    /// Pyta głosem i czeka na „tak”/„nie” (głos lub przyciski). Cisza = odmowa.
+    func confirm(_ question: String) async -> Bool {
+        lines.append(.init(role: .assistant, text: question))
+        await speaker.speak(question)
+        phase = .confirming(question)
+        transcript = ""
+
+        return await withCheckedContinuation { c in
+            pendingConfirmation = c
+            confirmationTimeout = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(15))
+                guard !Task.isCancelled else { return }
+                self?.answerConfirmation(false)
+            }
+            do {
+                try recognizer.start { [weak self] partial in
+                    Task { @MainActor in
+                        guard let self else { return }
+                        self.transcript = partial
+                        if let answer = ConfirmationParser.parse(partial) { self.answerConfirmation(answer) }
+                    }
+                }
+            } catch {
+                // Bez mikrofonu (np. symulator) zostają przyciski Tak/Nie.
+            }
+        }
+    }
+
+    func answerConfirmation(_ answer: Bool) {
+        guard let c = pendingConfirmation else { return }
+        pendingConfirmation = nil
+        confirmationTimeout?.cancel()
+        recognizer.stop()
+        lines.append(.init(role: .user, text: answer ? String(localized: "Yes") : String(localized: "No")))
+        phase = .thinking
+        c.resume(returning: answer)
+    }
+}
