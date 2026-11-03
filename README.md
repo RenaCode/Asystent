@@ -86,6 +86,10 @@ the device, and the `home_control` tool returns accessory and scene names to the
 for your own phone; it needs a paid Apple Developer account for the HomeKit entitlement. CI builds both variants
 and fails if the App Store one contains HomeKit.
 
+Keep `NSHomeKitUsageDescription` (and `NSLocalNetworkUsageDescription`) out of `Resources/InfoPlist.xcstrings`:
+the catalog is shared, so a translation there ends up in the App Store build's `InfoPlist.strings`. Xcode may add
+the keys back after a local-variant build in the IDE; do not commit them (CI and `StoreBuildTests` catch it).
+
 Before archiving for the App Store, keep `PROXY_URL` and `APP_TOKEN` empty and replace the privacy policy
 placeholder in `Sources/Settings/AppLinks.swift`.
 

@@ -1,6 +1,6 @@
 name: Asystent
 options:
-  bundleIdPrefix: com.example.asystent
+  bundleIdPrefix: com.renacode
   developmentLanguage: en
   deploymentTarget:
     iOS: "18.0"

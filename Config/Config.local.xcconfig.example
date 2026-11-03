@@ -1,4 +1,5 @@
 // Skopiuj do Config/Config.local.xcconfig (plik jest w .gitignore) i uzupełnij.
+// Domyślny bundle ID com.renacode.hejo należy do wydawcy Hejo — przy własnym podpisie podaj swój.
 ASYSTENT_BUNDLE_ID = com.yourname.asystent
 DEVELOPMENT_TEAM = YOURTEAMID
 

@@ -11,6 +11,8 @@ targets:
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) HOMEKIT_ENABLED
     info:
       properties:
+        # Bez tłumaczeń w InfoPlist.xcstrings: wpis w katalogu trafiłby do InfoPlist.strings
+        # wariantu sklepowego (StoreBuildTests.homeKitOnlyInLocalBuild).
         NSHomeKitUsageDescription: Hejo controls your HomeKit accessories; their names are sent to Claude (Anthropic).
         # Self-hosted proxy po http na adres LAN; internet nadal wymaga HTTPS.
         NSLocalNetworkUsageDescription: Hejo connects to your self-hosted proxy on the local network.

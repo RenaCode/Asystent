@@ -20,38 +20,6 @@
         }
       }
     },
-    "NSHomeKitUsageDescription": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hejo controls your HomeKit accessories; their names are sent to Claude (Anthropic)."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hejo steruje urządzeniami HomeKit; ich nazwy trafiają do Claude (Anthropic)."
-          }
-        }
-      }
-    },
-    "NSLocalNetworkUsageDescription": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hejo connects to your self-hosted proxy on the local network."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hejo łączy się z Twoim proxy w sieci lokalnej."
-          }
-        }
-      }
-    },
     "NSMicrophoneUsageDescription": {
       "localizations": {
         "en": {

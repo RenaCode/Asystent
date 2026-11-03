@@ -51,14 +51,32 @@ jobs:
           has_homekit() {
             app=build/$1/Build/Products/Debug-iphonesimulator/Asystent.app
             test -d "$app" || { echo "missing $app"; exit 1; }
-            /usr/libexec/PlistBuddy -c 'Print :NSHomeKitUsageDescription' "$app/Info.plist" >/dev/null 2>&1 \
-              || grep -rqa --exclude-dir='*.xctest' -e home_control -e /HomeKit.framework/ "$app"
+            # Info.plist and every localized InfoPlist.strings (from Resources/InfoPlist.xcstrings).
+            for f in "$app/Info.plist" "$app"/*.lproj/InfoPlist.strings; do
+              plutil -p "$f" | grep -q NSHomeKitUsageDescription && return 0
+            done
+            grep -rqa --exclude-dir='*.xctest' -e home_control -e /HomeKit.framework/ "$app"
           }
           has_homekit local || { echo "positive control failed: local build has no HomeKit"; exit 1; }
+          # Positive control for the .strings path: the reader must see a key that is localized.
+          plutil -p build/store/Build/Products/Debug-iphonesimulator/Asystent.app/pl.lproj/InfoPlist.strings \
+            | grep -q NSMicrophoneUsageDescription || { echo "positive control failed: no localized usage strings"; exit 1; }
           if has_homekit store; then echo "App Store build contains HomeKit"; exit 1; fi
           if xcodegen dump --type yaml | grep -qi homekit; then
             echo "App Store spec declares entitlements"; exit 1
           fi
+      # Runs the app-level check (Info.plist + tool registry) in both variants. Only this test:
+      # the rest of StoreBuildTests needs a signed app for Keychain, and the logic is covered by swift test.
+      - name: StoreBuildTests.homeKitOnlyInLocalBuild (both variants)
+        run: |
+          udid=$(xcrun simctl list devices available iPhone | grep -m1 -oE '[0-9A-F-]{36}')
+          test -n "$udid" || { echo "no iPhone simulator"; exit 1; }
+          for v in store local; do
+            xcodebuild test-without-building \
+              -xctestrun "$(ls build/$v/Build/Products/*.xctestrun | head -1)" \
+              -destination "id=$udid" \
+              -only-testing:'AsystentTests/StoreBuildTests/homeKitOnlyInLocalBuild()'
+          done
 
   proxy:
     name: Proxy (npm test)
