@@ -6,11 +6,11 @@ struct AsystentControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(kind: "asystent.control") {
             ControlWidgetButton(action: StartListeningIntent()) {
-                Label("Asystent", systemImage: "waveform")
+                Label("Hejo", systemImage: "waveform")
             }
         }
-        .displayName("Asystent")
-        .description("Start talking to Asystent.")
+        .displayName("Hejo")
+        .description("Start talking to Hejo.")
     }
 }
 

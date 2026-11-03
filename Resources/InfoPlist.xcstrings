@@ -9,45 +9,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Asystent adds and reads events in your calendar."
+            "value": "Hejo adds events you ask for and reads event dates and titles to answer questions; those titles are sent to Claude (Anthropic)."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Asystent dodaje i czyta wydarzenia w kalendarzu."
-          }
-        }
-      }
-    },
-    "NSHomeKitUsageDescription": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Asystent controls your smart home accessories."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Asystent steruje urządzeniami smart home."
-          }
-        }
-      }
-    },
-    "NSLocalNetworkUsageDescription": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Asystent connects to your self-hosted proxy on the local network."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Asystent łączy się z Twoim proxy w sieci lokalnej."
+            "value": "Hejo dodaje wydarzenia, o które prosisz, i czyta daty oraz tytuły wydarzeń, by odpowiadać na pytania; tytuły trafiają do Claude (Anthropic)."
           }
         }
       }
@@ -57,13 +25,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Asystent listens to your voice commands."
+            "value": "Hejo listens only while the microphone button is active, to turn your command into text."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Asystent słucha Twoich poleceń."
+            "value": "Hejo słucha tylko wtedy, gdy przycisk mikrofonu jest aktywny, by zamienić polecenie na tekst."
           }
         }
       }
@@ -73,13 +41,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Asystent creates reminders."
+            "value": "Hejo creates reminders you dictate; the reminder text is sent to Claude (Anthropic)."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Asystent tworzy przypomnienia."
+            "value": "Hejo tworzy dyktowane przypomnienia; ich treść trafia do Claude (Anthropic)."
           }
         }
       }
@@ -89,13 +57,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Speech recognition turns your commands into text."
+            "value": "Your speech is transcribed on this iPhone when possible, otherwise by Apple's servers. The text (not the audio) is sent to Claude by Anthropic to answer you."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rozpoznawanie mowy zamienia polecenia na tekst."
+            "value": "Mowa jest rozpoznawana na tym iPhonie, gdy to możliwe, w przeciwnym razie przez serwery Apple. Tekst (nie nagranie) trafia do Claude firmy Anthropic, by przygotować odpowiedź."
           }
         }
       }

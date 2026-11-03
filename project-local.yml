@@ -1,0 +1,28 @@
+# Build osobisty (poza App Store): project.yml + HomeKit + proxy w sieci domowej.
+#   xcodegen generate --spec project-local.yml
+# PLA §3.3.3(I) zabrania wysyłania danych HomeKit poza urządzenie, a narzędzie home_control
+# zwraca nazwy urządzeń i scen do modelu — dlatego ten wariant nie trafia do sklepu.
+include:
+  - project.yml
+targets:
+  Asystent:
+    settings:
+      base:
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) HOMEKIT_ENABLED
+    info:
+      properties:
+        # Bez tłumaczeń w InfoPlist.xcstrings: wpis w katalogu trafiłby do InfoPlist.strings
+        # wariantu sklepowego (StoreBuildTests.homeKitOnlyInLocalBuild).
+        NSHomeKitUsageDescription: Hejo controls your HomeKit accessories; their names are sent to Claude (Anthropic).
+        # Self-hosted proxy po http na adres LAN; internet nadal wymaga HTTPS.
+        NSLocalNetworkUsageDescription: Hejo connects to your self-hosted proxy on the local network.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    entitlements:
+      path: Config/Asystent.entitlements
+      properties:
+        com.apple.developer.homekit: true
+  AsystentTests:
+    settings:
+      base:
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) HOMEKIT_ENABLED

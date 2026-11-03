@@ -15,17 +15,32 @@ struct AssistantSettings {
     static let modeKey = "backendMode"
     var defaults: UserDefaults = .standard
     var keychain = KeychainStore()
+    /// Proxy jest w ofercie tylko wtedy, gdy build ma `PROXY_URL` i `APP_TOKEN` (self-hosting).
+    /// Build sklepowy ma je puste, więc pokazuje wyłącznie tryb własnego klucza.
+    var proxyAvailable = ProxyClient.fromInfoPlist() != nil
+
+    var availableModes: [BackendMode] { proxyAvailable ? BackendMode.allCases : [.direct] }
 
     var mode: BackendMode {
-        get { BackendMode(rawValue: defaults.string(forKey: Self.modeKey) ?? "") ?? .direct }
+        get {
+            let stored = BackendMode(rawValue: defaults.string(forKey: Self.modeKey) ?? "") ?? .direct
+            return availableModes.contains(stored) ? stored : .direct
+        }
         nonmutating set { defaults.set(newValue.rawValue, forKey: Self.modeKey) }
     }
+
+    /// Zgoda na wysyłkę do Anthropic dla bieżącego trybu (inny tryb = inny odbiorca = osobna zgoda).
+    var consent: ConsentStore { ConsentStore(defaults: defaults, scope: mode.rawValue) }
 
     var hasAPIKey: Bool { !(keychain.read() ?? "").isEmpty }
 
     /// Klient zgodny z aktualnymi ustawieniami; gdy czegoś brakuje — klient, który
-    /// zwraca czytelny błąd, zamiast wysyłać zapytanie.
+    /// zwraca czytelny błąd, zamiast wysyłać zapytanie. Zawsze za bramką zgody.
     func makeClient() -> any LLMClient {
+        ConsentGatedClient(base: makeBaseClient(), consent: consent)
+    }
+
+    private func makeBaseClient() -> any LLMClient {
         switch mode {
         case .direct:
             guard let key = keychain.read(), !key.isEmpty else {

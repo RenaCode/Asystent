@@ -12,3 +12,4 @@ DerivedData/
 .DS_Store
 # globalny gitignore wyklucza lockfile — tutaj go chcemy (npm ci w Dockerfile)
 !/proxy/package-lock.json
+/build/
