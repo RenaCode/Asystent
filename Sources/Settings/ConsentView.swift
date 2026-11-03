@@ -15,13 +15,10 @@ struct ConsentView: View {
                 }
 
                 Section("What is sent") {
-                    Label("The text of what you say (transcribed speech), not the audio.", systemImage: "text.quote")
-                    Label("Event dates and titles when you ask about your calendar.", systemImage: "calendar")
-                    Label("The text of reminders you create.", systemImage: "checklist")
-                    Label("Names of Shortcuts you ask to run.", systemImage: "square.stack.3d.up")
-                    #if HOMEKIT_ENABLED
-                    Label("Names of HomeKit accessories, rooms and scenes.", systemImage: "house")
-                    #endif
+                    // Lista z narzędzi faktycznie obecnych w buildzie (HomeKit tylko w lokalnym).
+                    ForEach(ConsentDisclosure.items(toolNames: ToolRegistry.default.specs.map(\.name))) { item in
+                        Label { Text(item.text) } icon: { Image(systemName: item.systemImage) }
+                    }
                 }
 
                 Section("Where it goes") {

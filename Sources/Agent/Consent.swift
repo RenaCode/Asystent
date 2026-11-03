@@ -5,7 +5,9 @@ import Foundation
 /// Zmiana zakresu wysyłanych danych = podbicie `currentVersion`, więc stara zgoda przestaje wystarczać.
 /// `@unchecked`: `UserDefaults` jest bezpieczne wątkowo, ale SDK nie oznacza go jako `Sendable`.
 struct ConsentStore: @unchecked Sendable {
-    static let currentVersion = 1
+    /// 2 (03.11.2026): pełna lista z `ConsentDisclosure` (czas, strefa, język, historia rozmowy,
+    /// tworzone wydarzenia z miejscem, termin przypomnień, tekst dla skrótów).
+    static let currentVersion = 2
     var defaults: UserDefaults = .standard
     /// Tryb połączenia (`BackendMode.rawValue`).
     var scope: String
