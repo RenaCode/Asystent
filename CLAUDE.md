@@ -52,7 +52,7 @@ wywołanie → mowa (pl-PL) → Claude (tool use) → akcja na telefonie → odp
   `anthropic-version: 2026-10-21`. `stop_reason` sprawdzany przed treścią (refusal, max_tokens, pause_turn).
 - Historia rozmowy tylko dopisywana, prompt systemowy zamrożony na rozmowę (bloki thinking są związane z prefiksem);
   bloki z odpowiedzi API wracają bez zmian (`ContentBlock.raw`).
-- Zero sekretów, imion i danych osobowych w repo i w commitach; autor commitów: `RenaCode <2884538+mbeczynski@users.noreply.github.com>` (adres noreply GitHuba, bez prywatnego e-maila).
+- Zero sekretów, imion i danych osobowych w repo i w commitach; autor commitów: `RenaCode` z adresem noreply GitHuba (ustawiony w lokalnym `git config`, nie w repo), bez prywatnego e-maila.
 - Klucz `ANTHROPIC_API_KEY` nigdy w repo. W trybie proxy apka ↔ proxy autoryzowana `APP_TOKEN`.
 - Każde narzędzie = osobny plik implementujący `AssistantTool`; rejestracja w `ToolRegistry`.
 - Akcje destrukcyjne (usuwanie eventów itp.) wymagają potwierdzenia głosowego — narzędzie zwraca pytanie
