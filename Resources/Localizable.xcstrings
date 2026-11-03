@@ -114,6 +114,16 @@
         }
       }
     },
+    "Dates, times and titles of events from all calendars on this iPhone when a request needs your calendar. The AI chooses the date range (up to 20 events).": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daty, godziny i tytuły wydarzeń ze wszystkich kalendarzy na tym iPhonie, gdy prośba wymaga sprawdzenia kalendarza. Zakres dat wybiera AI (do 20 wydarzeń)."
+          }
+        }
+      }
+    },
     "Directly from this iPhone to Anthropic (USA), under your own agreement with Anthropic and billed to your API key. RenaCode does not receive or store this data.": {
       "localizations": {
         "pl": {
@@ -130,16 +140,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gotowe."
-          }
-        }
-      }
-    },
-    "Event dates and titles when you ask about your calendar.": {
-      "localizations": {
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Daty i tytuły wydarzeń, gdy pytasz o kalendarz."
           }
         }
       }
@@ -217,12 +217,12 @@
         }
       }
     },
-    "Names of Shortcuts you ask to run.": {
+    "Names of Shortcuts you ask to run and the text passed to them.": {
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nazwy Skrótów, które każesz uruchomić."
+            "value": "Nazwy Skrótów, które każesz uruchomić, i przekazywany im tekst."
           }
         }
       }
@@ -507,6 +507,26 @@
         }
       }
     },
+    "The conversation so far: your earlier requests, the AI’s answers and the results of actions (for example calendar events read). It is sent again with every request until you tap Reset or restart the app.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dotychczasowa rozmowa: Twoje wcześniejsze prośby, odpowiedzi AI i wyniki akcji (np. odczytane wydarzenia z kalendarza). Jest wysyłana ponownie z każdym zapytaniem, dopóki nie stukniesz „Od nowa” albo nie uruchomisz aplikacji ponownie."
+          }
+        }
+      }
+    },
+    "The current date and time, your time zone, and this iPhone’s language and region.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bieżąca data i godzina, Twoja strefa czasowa oraz język i region tego iPhone’a."
+          }
+        }
+      }
+    },
     "The model returned an invalid response.": {
       "localizations": {
         "pl": {
@@ -517,12 +537,12 @@
         }
       }
     },
-    "The text of reminders you create.": {
+    "The text and due date of reminders you create.": {
       "localizations": {
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Treść tworzonych przypomnień."
+            "value": "Treść i termin tworzonych przypomnień."
           }
         }
       }
@@ -533,6 +553,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tekst Twojej wypowiedzi (rozpoznana mowa), bez nagrania dźwięku."
+          }
+        }
+      }
+    },
+    "Title, start and end time, and place of events you ask to create.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tytuł, godzina początku i końca oraz miejsce wydarzeń, które każesz utworzyć."
           }
         }
       }

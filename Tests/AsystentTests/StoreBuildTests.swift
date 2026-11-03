@@ -20,6 +20,14 @@ struct StoreBuildTests {
         #expect(names.contains("create_calendar_event"))
     }
 
+    /// Każde narzędzie w tym buildzie (sklepowym i lokalnym) i każde pole jego `input_schema`
+    /// ma pozycję na ekranie zgody.
+    @Test func consentScreenDisclosesEveryTool() {
+        let specs = ToolRegistry.default.specs
+        #expect(!specs.isEmpty)
+        #expect(ConsentDisclosure.undisclosed(specs: specs) == [])
+    }
+
     @Test func displayNameIsHejo() {
         #expect(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String == "Hejo")
         #expect(Bundle.main.url(forResource: "PrivacyInfo", withExtension: "xcprivacy") != nil)

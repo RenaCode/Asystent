@@ -31,7 +31,11 @@ Back Tap / "Hey Siri, ask Hejo" / Control Center
 - **Destructive or irreversible actions** (currently: running a Shortcut, which can send messages or delete data)
   are executed only after a spoken "yes" (or the Yes button). Silence or "no" cancels.
 - **Nothing is sent before consent.** On first use the app explains what goes to Anthropic (the transcribed
-  text of your request, event dates and titles, reminder text, Shortcut names) and asks for permission.
+  text of your request, the current time, time zone, language and region, the conversation so far, calendar
+  events the model reads or creates, reminder text and due date, Shortcut names and their input) and asks for
+  permission. The list lives in `Sources/Agent/ConsentDisclosure.swift`; tests fail if a tool or a field of its input schema has no entry.
+  Sending new data means a new entry there, a bump of `ConsentStore.currentVersion` and an update of the
+  [privacy policy](https://renacode.com/hejo/privacy).
   Consent is stored on the device per connection mode and can be withdrawn in Settings → Privacy; without it
   every request is blocked before it leaves the phone (`ConsentGatedClient`). The UI states that answers come
   from AI.

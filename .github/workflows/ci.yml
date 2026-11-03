@@ -67,7 +67,7 @@ jobs:
           fi
       # Runs the app-level check (Info.plist + tool registry) in both variants. Only this test:
       # the rest of StoreBuildTests needs a signed app for Keychain, and the logic is covered by swift test.
-      - name: StoreBuildTests.homeKitOnlyInLocalBuild (both variants)
+      - name: StoreBuildTests (HomeKit only locally, consent screen lists every tool; both variants)
         run: |
           udid=$(xcrun simctl list devices available iPhone | grep -m1 -oE '[0-9A-F-]{36}')
           test -n "$udid" || { echo "no iPhone simulator"; exit 1; }
@@ -75,7 +75,8 @@ jobs:
             xcodebuild test-without-building \
               -xctestrun "$(ls build/$v/Build/Products/*.xctestrun | head -1)" \
               -destination "id=$udid" \
-              -only-testing:'AsystentTests/StoreBuildTests/homeKitOnlyInLocalBuild()'
+              -only-testing:'AsystentTests/StoreBuildTests/homeKitOnlyInLocalBuild()' \
+              -only-testing:'AsystentTests/StoreBuildTests/consentScreenDisclosesEveryTool()'
           done
 
   proxy:

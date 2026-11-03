@@ -41,6 +41,15 @@ struct ConsentTests {
         #expect(!ConsentStore(defaults: defaults, scope: "direct").isGranted)
     }
 
+    /// Wersja 1 ekranu zgody nie wymieniała czasu, strefy, języka, historii rozmowy, miejsca
+    /// wydarzeń ani tekstu dla skrótów (03.11) — zgoda udzielona na nią musi zostać odnowiona.
+    @Test func consentGivenOnTheIncompleteFirstScreenIsNoLongerValid() {
+        let defaults = scratchDefaults()
+        defaults.set(1, forKey: "consent.direct.version")
+        defaults.set(Date(timeIntervalSince1970: 1_800_000_000), forKey: "consent.direct.date")
+        #expect(!ConsentStore(defaults: defaults, scope: "direct").isGranted)
+    }
+
     @Test func noConsentMeansNoRequestLeaves() async throws {
         let base = ScriptedClient([.reply(response("end_turn", [.text("hej")]))])
         let consent = ConsentStore(defaults: scratchDefaults(), scope: "direct")
