@@ -45,7 +45,12 @@ struct ConsentDisclosureTests {
                                                             "create_reminder", "run_shortcut"]).map(\.id))
         #expect(store == ["speech", "context", "conversation", "calendarRead", "calendarCreate",
                           "reminders", "shortcuts"])
+        // Pozycja HomeKit istnieje tylko w buildzie lokalnym (i w pakiecie), nie w sklepowym.
+        #if HOMEKIT_ENABLED || SWIFT_PACKAGE
         #expect(ConsentDisclosure.items(toolNames: ["home_control"]).map(\.id).contains("homeKit"))
+        #else
+        #expect(!ConsentDisclosure.all.map(\.id).contains("homeKit"))
+        #endif
     }
 
     /// Wiadomość użytkownika to znacznik czasu (pozycja „context”) i transkrypcja (pozycja „speech”).

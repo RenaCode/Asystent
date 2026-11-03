@@ -15,7 +15,21 @@ enum ConsentDisclosure {
         let tools: [String: Set<String>]
     }
 
-    static let all: [Item] = [
+    static let all: [Item] = common + homeKit
+
+    /// Tylko build lokalny (i pakiet z testami): CI szuka napisu `home_control` w binarce
+    /// buildu sklepowego, więc nie może tam trafić nawet w opisie zgody.
+    #if HOMEKIT_ENABLED || SWIFT_PACKAGE
+    private static let homeKit = [
+        Item(id: "homeKit",
+             text: "Names of HomeKit accessories, rooms and scenes.",
+             systemImage: "house", tools: ["home_control": ["action", "name"]]),
+    ]
+    #else
+    private static let homeKit: [Item] = []
+    #endif
+
+    private static let common: [Item] = [
         Item(id: "speech",
              text: "The text of what you say (transcribed speech), not the audio.",
              systemImage: "text.quote", tools: [:]),
@@ -41,9 +55,6 @@ enum ConsentDisclosure {
         Item(id: "shortcuts",
              text: "Names of Shortcuts you ask to run and the text passed to them.",
              systemImage: "square.stack.3d.up", tools: ["run_shortcut": ["name", "input"]]),
-        Item(id: "homeKit",
-             text: "Names of HomeKit accessories, rooms and scenes.",
-             systemImage: "house", tools: ["home_control": ["action", "name"]]),
     ]
 
     /// Pozycje dla buildu z podanymi narzędziami: zawsze wysyłane + te, których narzędzia są w buildzie.
