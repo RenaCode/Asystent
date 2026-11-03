@@ -2,8 +2,8 @@ import AppIntents
 
 /// Jeden intent dla wszystkich wyzwalaczy: fraza Siri, Back Tap (przez Skrót), ControlWidget.
 struct StartListeningIntent: AppIntent {
-    static let title: LocalizedStringResource = "Ask Asystent"
-    static let description = IntentDescription("Opens Asystent and starts listening right away.")
+    static let title: LocalizedStringResource = "Ask Hejo"
+    static let description = IntentDescription("Opens Hejo and starts listening right away.")
     static let openAppWhenRun: Bool = true
 
     @MainActor

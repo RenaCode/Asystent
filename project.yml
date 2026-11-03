@@ -10,6 +10,7 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
     SWIFT_EMIT_LOC_STRINGS: YES
+# Build sklepowy (Hejo): BYO key, bez HomeKit. Build osobisty z HomeKit: project-local.yml.
 # Bundle ID, Team i adres proxy — w Config/Config.local.xcconfig (poza repo).
 configFiles:
   Debug: Config/Config.xcconfig
@@ -28,26 +29,22 @@ targets:
     info:
       path: Config/Info.plist
       properties:
-        CFBundleDisplayName: Asystent
+        CFBundleDisplayName: Hejo
+        # Mówiona pisownia nazwy dla Siri po angielsku (2.5.11: nie słowo ogólne).
+        INAlternativeAppNames:
+          - INAlternativeAppName: Heyo
         PROXY_URL: $(PROXY_URL)
         APP_TOKEN: $(APP_TOKEN)
         UILaunchScreen: {}
-        NSMicrophoneUsageDescription: Asystent listens to your voice commands.
-        NSSpeechRecognitionUsageDescription: Speech recognition turns your commands into text.
-        NSCalendarsFullAccessUsageDescription: Asystent adds and reads events in your calendar.
-        NSRemindersFullAccessUsageDescription: Asystent creates reminders.
-        NSHomeKitUsageDescription: Asystent controls your smart home accessories.
-        # Tylko dla self-hosted proxy w sieci domowej (http na adres LAN); internet nadal wymaga HTTPS.
-        NSLocalNetworkUsageDescription: Asystent connects to your self-hosted proxy on the local network.
-        NSAppTransportSecurity:
-          NSAllowsLocalNetworking: true
+        ITSAppUsesNonExemptEncryption: false
+        NSMicrophoneUsageDescription: Hejo listens only while the microphone button is active, to turn your command into text.
+        NSSpeechRecognitionUsageDescription: Your speech is transcribed on this iPhone when possible, otherwise by Apple's servers. The text (not the audio) is sent to Claude by Anthropic to answer you.
+        NSCalendarsFullAccessUsageDescription: Hejo adds events you ask for and reads event dates and titles to answer questions; those titles are sent to Claude (Anthropic).
+        NSRemindersFullAccessUsageDescription: Hejo creates reminders you dictate; the reminder text is sent to Claude (Anthropic).
         LSApplicationQueriesSchemes: [shortcuts]
         CFBundleURLTypes:
           - CFBundleURLSchemes: [asystent]
-    entitlements:
-      path: Config/Asystent.entitlements
-      properties:
-        com.apple.developer.homekit: true
+    # Build sklepowy: bez HomeKit i bez wyjątku ATS dla sieci lokalnej — oba dokłada project-local.yml.
     dependencies:
       - target: AsystentControls
     scheme:
@@ -70,7 +67,7 @@ targets:
     info:
       path: Config/Controls-Info.plist
       properties:
-        CFBundleDisplayName: Asystent
+        CFBundleDisplayName: Hejo
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
   AsystentTests:

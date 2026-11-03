@@ -17,10 +17,13 @@ final class AssistantSession: ActionConfirmer {
     var phase: Phase = .idle
     var transcript = ""
     var lines: [Line] = []
+    /// Pokazuje ekran ujawnienia i zgody (5.1.2(i)); ustawiane, gdy ktoś chce zacząć bez zgody.
+    var needsConsent = false
 
     private let recognizer = SpeechRecognizer()
     private let speaker = Speaker()
     @ObservationIgnored private var agent: AgentLoop!
+    @ObservationIgnored private(set) var settings = AssistantSettings()
     @ObservationIgnored private var pendingConfirmation: CheckedContinuation<Bool, Never>?
     @ObservationIgnored private var confirmationTimeout: Task<Void, Never>?
 
@@ -28,13 +31,21 @@ final class AssistantSession: ActionConfirmer {
 
     /// Po zmianie trybu/klucza w Ustawieniach zaczynamy nową rozmowę z nowym klientem.
     func reloadSettings() {
-        agent = AgentLoop(client: AssistantSettings().makeClient(), registry: .default, confirmer: self)
+        settings = AssistantSettings()
+        agent = AgentLoop(client: settings.makeClient(), registry: .default, confirmer: self)
         lines.removeAll()
         phase = .idle
     }
 
+    var hasConsent: Bool { settings.consent.isGranted }
+
+    func grantConsent() { settings.consent.grant(); needsConsent = false }
+
+    func revokeConsent() { settings.consent.revoke() }
+
     func startListening() async {
         guard phase != .listening, phase != .thinking else { return }
+        guard hasConsent else { needsConsent = true; return }
         speaker.stop()
         transcript = ""
         phase = .listening
@@ -56,6 +67,7 @@ final class AssistantSession: ActionConfirmer {
 
     func send(_ text: String) async {
         guard phase != .thinking else { return }
+        guard hasConsent else { needsConsent = true; return }
         lines.append(.init(role: .user, text: text))
         phase = .thinking
         do {

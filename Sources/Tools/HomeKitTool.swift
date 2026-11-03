@@ -1,3 +1,6 @@
+// Tylko build osobisty (project-local.yml): PLA §3.3.3(I) zabrania wysyłania danych HomeKit
+// poza urządzenie, a to narzędzie zwraca modelowi nazwy urządzeń i scen.
+#if HOMEKIT_ENABLED
 import HomeKit
 
 /// Sterowanie HomeKit: włącz/wyłącz urządzenie albo uruchom scenę.
@@ -71,3 +74,4 @@ struct HomeKitTool: AssistantTool {
         }
     }
 }
+#endif
