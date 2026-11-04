@@ -68,8 +68,7 @@ final class AgentLoop {
                     let calls = resp.content.filter { $0.type == "tool_use" }
                     guard !calls.isEmpty else { throw AgentError.malformedResponse }
                     history.append(Message(role: "assistant", content: resp.content))
-                    let results = await runTools(calls)
-                    try ensureCurrent()
+                    let results = try await runTools(calls, ensureCurrent: ensureCurrent)
                     history.append(Message(role: "user", content: results))
 
                 case "end_turn", "stop_sequence":
@@ -99,16 +98,20 @@ final class AgentLoop {
             }
         } catch {
             rollBack()
-            throw error
+            // Błąd tury porzuconej przez Reset (np. 401, brak sieci) nie dotyczy nowej rozmowy.
+            throw generation == gen ? error : CancellationError()
         }
         rollBack()
         return Replies.tooManySteps
     }
 
     /// Wszystkie wyniki trafiają do JEDNEJ wiadomości użytkownika, w kolejności wywołań.
-    private func runTools(_ calls: [ContentBlock]) async -> [ContentBlock] {
+    /// `ensureCurrent` przed każdym pytaniem i każdym wykonaniem: po Resecie (także w czasie
+    /// pytania o potwierdzenie) żadne narzędzie porzuconej tury już się nie wykona.
+    private func runTools(_ calls: [ContentBlock], ensureCurrent: () throws -> Void) async throws -> [ContentBlock] {
         var results: [ContentBlock] = []
         for call in calls {
+            try ensureCurrent()
             guard let id = call.id else { continue }
             let name = call.name ?? ""
             let input = call.input ?? .object([:])
@@ -122,6 +125,7 @@ final class AgentLoop {
                     results.append(.toolResult(id: id, content: "User did not confirm. Action cancelled; do not retry.", isError: true))
                     continue
                 }
+                try ensureCurrent()
             }
             do {
                 results.append(.toolResult(id: id, content: try await tool.run(input)))
@@ -138,7 +142,8 @@ final class AgentLoop {
     }
 
     enum AgentError: LocalizedError, Equatable {
-        /// Poprzednia tura jeszcze trwa (np. czeka na odpowiedź albo na potwierdzenie).
+        /// Tura tej samej rozmowy jeszcze trwa (czeka na odpowiedź modelu albo na potwierdzenie).
+        /// Po Resecie nowa tura jest dozwolona od razu — porzucona kończy się `CancellationError`.
         case busy
         case malformedResponse, unexpectedStopReason(String)
         var errorDescription: String? {

@@ -33,6 +33,14 @@ final class InterruptingClient: LLMClient {
     }
 }
 
+/// Potwierdzający, który w trakcie pytania wywołuje akcję (np. Reset) i odpowiada „tak”.
+@MainActor
+final class ResettingConfirmer: ActionConfirmer {
+    var onConfirm: () -> Void = {}
+    var asked = 0
+    func confirm(_ question: String) async -> Bool { asked += 1; onConfirm(); return true }
+}
+
 @MainActor
 struct AgentLoopReentrancyTests {
     let log = CallLog()
@@ -51,7 +59,8 @@ struct AgentLoopReentrancyTests {
         let agent = loop(client)
         _ = try await agent.run(userText: "1")
         client.interrupt[1] = { agent.reset() }
-        await #expect(throws: (any Error).self) { try await agent.run(userText: "2") }
+        // Błąd porzuconej tury (np. 401, brak sieci) nie może wrócić jako komunikat w nowej rozmowie.
+        await #expect(throws: CancellationError.self) { try await agent.run(userText: "2") }
         #expect(agent.history.isEmpty)
     }
 
@@ -63,7 +72,7 @@ struct AgentLoopReentrancyTests {
         let agent = loop(client)
         _ = try await agent.run(userText: "1")
         client.interrupt[1] = { agent.reset() }
-        _ = try? await agent.run(userText: "2")
+        await #expect(throws: CancellationError.self) { try await agent.run(userText: "2") }
         #expect(agent.history.isEmpty)
     }
 
@@ -91,7 +100,29 @@ struct AgentLoopReentrancyTests {
         ])
         let agent = loop(client)
         client.interrupt[0] = { agent.reset() }
-        _ = try? await agent.run(userText: "x")
+        await #expect(throws: CancellationError.self) { try await agent.run(userText: "x") }
+        #expect(log.inputs.isEmpty)
+        #expect(agent.history.isEmpty)
+        #expect(client.requests.count == 1)
+    }
+
+    /// Reset w czasie pytania o potwierdzenie przy kilku wywołaniach narzędzi w jednej odpowiedzi:
+    /// „tak” z porzuconej rozmowy nie wykonuje akcji, a kolejne wywołania nie idą bez pytania.
+    @Test func resetDuringConfirmationRunsNoToolOfTheAbandonedTurn() async throws {
+        let client = InterruptingClient([
+            .reply(response("tool_use", [toolUse("t1", "rm"), toolUse("t2", "rm"), toolUse("t3", "a")])),
+            .reply(response("end_turn", [.text("ok")])),
+        ])
+        let confirmer = ResettingConfirmer()
+        let agent = AgentLoop(
+            client: client,
+            registry: ToolRegistry(tools: [FakeTool(name: "rm", log: log, needsConfirmation: true),
+                                           FakeTool(name: "a", log: log)]),
+            confirmer: confirmer)
+        confirmer.onConfirm = { agent.reset() }
+        await #expect(throws: CancellationError.self) { try await agent.run(userText: "usuń") }
+        #expect(log.inputs.isEmpty)
+        #expect(confirmer.asked == 1)
         #expect(agent.history.isEmpty)
         #expect(client.requests.count == 1)
     }
