@@ -21,6 +21,16 @@
         }
       }
     },
+    "%@ sent a response the app could not read. Check your internet connection and try again.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usługa %@ przysłała odpowiedź, której aplikacja nie potrafi odczytać. Sprawdź połączenie z internetem i spróbuj ponownie."
+          }
+        }
+      }
+    },
     "**%@:** %@": {
       "shouldTranslate": false
     },

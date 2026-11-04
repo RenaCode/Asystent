@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// Abstrakcja nad dostawcą odpowiedzi modelu. Pętla agenta nie wie, czy rozmawia z
 /// `api.anthropic.com` bezpośrednio (BYO key), czy z własnym proxy.
@@ -59,12 +60,32 @@ struct LLMHTTPError: LocalizedError {
     }
 }
 
+/// Odpowiedź 200, której nie da się odczytać jako odpowiedzi API (np. strona logowania sieci Wi-Fi
+/// albo przerwane połączenie). Zamiast surowego `DecodingError` — komunikat z nazwą usługi.
+struct LLMInvalidResponse: LocalizedError {
+    let service: String
+    /// Przyczyna do diagnostyki (nie trafia do komunikatu dla użytkownika).
+    var underlying: DecodingError?
+
+    var errorDescription: String? {
+        String(localized: "\(service) sent a response the app could not read. Check your internet connection and try again.")
+    }
+}
+
 /// Wspólna obsługa odpowiedzi HTTP. `URLSession` wstrzykiwalne w testach.
+/// Błędy transportu (`URLError`, np. brak sieci) idą dalej bez zmian — iOS daje dla nich zlokalizowany opis.
 func performJSON(_ request: URLRequest, session: URLSession, service: String) async throws -> ChatResponse {
     let (data, resp) = try await session.data(for: request)
     let status = (resp as? HTTPURLResponse)?.statusCode ?? 0
     guard status == 200 else {
         throw LLMHTTPError(service: service, status: status, body: String(decoding: data, as: UTF8.self))
     }
-    return try JSONDecoder().decode(ChatResponse.self, from: data)
+    do {
+        return try JSONDecoder().decode(ChatResponse.self, from: data)
+    } catch let error as DecodingError {
+        // Bez treści odpowiedzi — może zawierać dane użytkownika.
+        Logger(subsystem: "Asystent", category: "LLMClient")
+            .error("\(service, privacy: .public): unreadable 200 response (\(data.count) bytes): \(String(describing: error), privacy: .private)")
+        throw LLMInvalidResponse(service: service, underlying: error)
+    }
 }

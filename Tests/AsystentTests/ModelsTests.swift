@@ -134,6 +134,46 @@ struct NetworkTests {
         let r = try await client.send(chat)
         #expect(r.stop_reason == "tool_use")
     }
+
+    /// 200 z treścią, która nie jest odpowiedzią API (np. strona logowania sieci Wi-Fi): czytelny błąd
+    /// z nazwą usługi zamiast surowego `DecodingError`.
+    @Test(arguments: ["<html><body>Hotel Wi-Fi login</body></html>", "", #"{"content":"nie tablica"}"#],
+          ["Proxy", "Anthropic"])
+    func unreadableSuccessBodyIsAnInvalidResponse(_ body: String, _ service: String) async throws {
+        StubProtocol.handler = { _ in (200, Data(body.utf8)) }
+        let client: any LLMClient = service == "Proxy"
+            ? ProxyClient(baseURL: URL(string: "http://stub.local")!, appToken: "t", session: StubProtocol.session())
+            : AnthropicDirectClient(apiKey: "k", session: StubProtocol.session())
+        do {
+            _ = try await client.send(chat)
+            Issue.record("powinien rzucić")
+        } catch let e as LLMInvalidResponse {
+            #expect(e.service == service)
+            let message = try #require(e.errorDescription)
+            #expect(message.contains(service))
+            // Przyczyna zachowana do diagnostyki, ale jej surowy opis nie trafia do użytkownika.
+            let underlying = try #require(e.underlying)
+            #expect(message != underlying.localizedDescription)
+        } catch {
+            Issue.record("oczekiwany LLMInvalidResponse, jest \(error)")
+        }
+    }
+
+    /// Brak sieci zostaje błędem systemowym (zlokalizowany komunikat iOS), nie „nieczytelną odpowiedzią”.
+    @Test func offlineErrorIsNotMistakenForAnInvalidResponse() async throws {
+        StubProtocol.handler = nil
+        StubProtocol.failure = URLError(.notConnectedToInternet)
+        defer { StubProtocol.failure = nil }
+        let client = AnthropicDirectClient(apiKey: "k", session: StubProtocol.session())
+        do {
+            _ = try await client.send(chat)
+            Issue.record("powinien rzucić")
+        } catch let e as URLError {
+            #expect(e.code == .notConnectedToInternet)
+        } catch {
+            Issue.record("oczekiwany URLError, jest \(error)")
+        }
+    }
 }
 
 extension JSONValue {
@@ -143,6 +183,8 @@ extension JSONValue {
 /// Podmiana sieci w URLSession — zero prawdziwych zapytań.
 final class StubProtocol: URLProtocol {
     nonisolated(unsafe) static var handler: (@Sendable (URLRequest) -> (Int, Data))?
+    /// Błąd transportu (np. brak sieci) zamiast odpowiedzi HTTP.
+    nonisolated(unsafe) static var failure: URLError?
 
     static func session() -> URLSession {
         let c = URLSessionConfiguration.ephemeral
@@ -153,6 +195,10 @@ final class StubProtocol: URLProtocol {
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
+        if let failure = Self.failure {
+            client?.urlProtocol(self, didFailWithError: failure)
+            return
+        }
         let (status, data) = Self.handler?(request) ?? (500, Data())
         let resp = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
         client?.urlProtocol(self, didReceive: resp, cacheStoragePolicy: .notAllowed)
