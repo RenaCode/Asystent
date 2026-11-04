@@ -29,6 +29,9 @@ final class SpeechRecognizer: @unchecked Sendable {
 
     func start(onPartial: @escaping @Sendable (String) -> Void) throws {
         guard let recognizer, recognizer.isAvailable else { throw SpeechError.unavailable }
+        // Drugi `installTap` na tej samej szynie rzuca wyjątek i wywraca apkę — sprzątamy
+        // poprzedni nasłuch, także ten, który padł w połowie startu (np. `engine.start()`).
+        stop()
         latest = ""
 
         let session = AVAudioSession.sharedInstance()
@@ -46,7 +49,7 @@ final class SpeechRecognizer: @unchecked Sendable {
             req.append(buf)
         }
         engine.prepare()
-        try engine.start()
+        do { try engine.start() } catch { stop(); throw error }
 
         task = recognizer.recognitionTask(with: req) { [weak self] result, _ in
             guard let result else { return }

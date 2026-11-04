@@ -217,6 +217,16 @@
         }
       }
     },
+    "Hejo is still working on the previous request.": {
+      "localizations": {
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hejo jeszcze odpowiada na poprzednie polecenie."
+          }
+        }
+      }
+    },
     "Hejo: reported answer": {
       "localizations": {
         "pl": {

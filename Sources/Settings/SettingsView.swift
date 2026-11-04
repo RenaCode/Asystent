@@ -36,7 +36,13 @@ struct SettingsView: View {
                             .accessibilityIdentifier("apiKeyField")
                         if hasKey {
                             Button("Remove key", role: .destructive) {
-                                do { try settings.keychain.delete(); hasKey = false } catch { self.error = error.localizedDescription }
+                                do {
+                                    try settings.keychain.delete()
+                                    hasKey = false
+                                    // Klient rozmowy trzyma klucz w pamięci — bez tego usunięty
+                                    // klucz działałby dalej do zapisu Ustawień albo restartu.
+                                    session.reloadSettings()
+                                } catch { self.error = error.localizedDescription }
                             }
                         }
                     } header: {
