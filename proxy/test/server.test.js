@@ -161,6 +161,91 @@ test("loadConfig odrzuca słaby token i brak klucza", () => {
   assert.equal(c.effort, "low");
 });
 
+const BASE_ENV = { ANTHROPIC_API_KEY: "k", APP_TOKEN: TOKEN };
+const load = (over) => {
+  const warnings = [];
+  const config = loadConfig({ ...BASE_ENV, ...over }, (w) => warnings.push(w));
+  return { config, warnings };
+};
+
+test("loadConfig: domyślne liczby, gdy zmiennych brak — bez ostrzeżeń", () => {
+  const { config, warnings } = load({});
+  assert.equal(config.port, 8787);
+  assert.equal(config.maxTokens, 16000);
+  assert.equal(config.rateLimit, 30);
+  assert.equal(config.host, "0.0.0.0");
+  assert.deepEqual(warnings, []);
+});
+
+test("loadConfig: poprawne liczby z env", () => {
+  const { config } = load({ PORT: "9000", MAX_TOKENS: "21333", RATE_LIMIT_PER_MIN: "5" });
+  assert.equal(config.port, 9000);
+  assert.equal(config.maxTokens, 21333);
+  assert.equal(config.rateLimit, 5);
+});
+
+test("loadConfig: spacje wokół wartości są obcinane, zera wiodące dozwolone", () => {
+  const { config } = load({ PORT: " 9000 ", MAX_TOKENS: "0080", MODEL: " claude-haiku-5-5 ", HOST: " 127.0.0.1", EFFORT: "medium " });
+  assert.equal(config.port, 9000);
+  assert.equal(config.maxTokens, 80);
+  assert.equal(config.model, "claude-haiku-5-5");
+  assert.equal(config.host, "127.0.0.1");
+  assert.equal(config.effort, "medium");
+});
+
+test("loadConfig: granica RATE_LIMIT_PER_MIN 100000", () => {
+  assert.equal(load({ RATE_LIMIT_PER_MIN: "100000" }).config.rateLimit, 100000);
+  assert.throws(() => load({ RATE_LIMIT_PER_MIN: "100001" }), /RATE_LIMIT_PER_MIN/);
+});
+
+test("loadConfig: PORT nie-liczba albo poza zakresem = czytelny błąd startu", () => {
+  for (const PORT of ["abc", "-1", "0", "65536", "80.5", "1e3", "8787abc"]) {
+    assert.throws(() => load({ PORT }), /PORT/, `PORT=${PORT}`);
+  }
+});
+
+// Granica 21333: proxy nie streamuje, a SDK bez streamingu odrzuca max_tokens, przy których
+// zapytanie mogłoby trwać > 10 min (60 min × max_tokens / 128000). 128000 (limit modelu) dawało 502.
+test("loadConfig: MAX_TOKENS poza granicą zapytania bez streamingu = czytelny błąd startu", () => {
+  for (const MAX_TOKENS of ["-5", "0", "1e9", "21334", "128000", "abc", "16000.5"]) {
+    assert.throws(() => load({ MAX_TOKENS }), /MAX_TOKENS.*21333/, `MAX_TOKENS=${MAX_TOKENS}`);
+  }
+});
+
+test("największy dozwolony MAX_TOKENS przechodzi przez SDK do Anthropic", async () => {
+  const { config } = load({ MAX_TOKENS: "21333" });
+  await withProxy({ maxTokens: config.maxTokens }, async (url) => {
+    const r = await chat(url, validBody);
+    assert.equal(r.status, 200);
+    assert.equal(calls[0].body.max_tokens, 21333);
+  });
+});
+
+test("loadConfig: RATE_LIMIT_PER_MIN nie-liczba = błąd (NaN wyłączałby limit)", () => {
+  for (const RATE_LIMIT_PER_MIN of ["abc", "0", "-3", "2.5"]) {
+    assert.throws(() => load({ RATE_LIMIT_PER_MIN }), /RATE_LIMIT_PER_MIN/, `RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN}`);
+  }
+});
+
+test("loadConfig: puste zmienne = wartość domyślna z ostrzeżeniem", () => {
+  const { config, warnings } = load({ PORT: "", MAX_TOKENS: " ", RATE_LIMIT_PER_MIN: "", HOST: "", MODEL: "" });
+  assert.equal(config.port, 8787);
+  assert.equal(config.maxTokens, 16000);
+  assert.equal(config.rateLimit, 30);
+  assert.equal(config.host, "0.0.0.0");
+  assert.equal(config.model, "claude-opus-5-5");
+  for (const name of ["PORT", "MAX_TOKENS", "RATE_LIMIT_PER_MIN", "HOST", "MODEL"]) {
+    assert.ok(warnings.some((w) => w.includes(name)), `brak ostrzeżenia o ${name}`);
+  }
+});
+
+test("loadConfig: pusty EFFORT = domyślny z ostrzeżeniem, nieznany = błąd", () => {
+  const { config, warnings } = load({ EFFORT: "" });
+  assert.equal(config.effort, "low");
+  assert.ok(warnings.some((w) => w.includes("EFFORT")));
+  assert.throws(() => load({ EFFORT: "turbo" }), /EFFORT/);
+});
+
 test("sanitize przepuszcza tylko dozwolone pola", () => {
   const s = sanitize({ ...validBody, model: "x", max_tokens: 99999 });
   assert.deepEqual(Object.keys(s).sort(), ["messages", "system", "tools"]);
