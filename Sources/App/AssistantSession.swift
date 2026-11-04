@@ -26,11 +26,15 @@ final class AssistantSession: ActionConfirmer {
     @ObservationIgnored private(set) var settings = AssistantSettings()
     @ObservationIgnored private var pendingConfirmation: CheckedContinuation<Bool, Never>?
     @ObservationIgnored private var confirmationTimeout: Task<Void, Never>?
+    /// Numer rozmowy, podbijany przez Reset i zmianę Ustawień: pytanie o potwierdzenie
+    /// z porzuconej rozmowy nie może się pojawić w nowej.
+    @ObservationIgnored private var conversation = 0
 
     init() { reloadSettings() }
 
     /// Po zmianie trybu/klucza w Ustawieniach zaczynamy nową rozmowę z nowym klientem.
     func reloadSettings() {
+        conversation += 1
         cancelPendingConfirmation()
         // Tura starego klienta, która jeszcze trwa, kończy się bez wpisu do nowej rozmowy.
         agent?.reset()
@@ -97,7 +101,14 @@ final class AssistantSession: ActionConfirmer {
         }
     }
 
-    func reset() { cancelPendingConfirmation(); agent.reset(); lines.removeAll(); phase = .idle }
+    func reset() {
+        conversation += 1
+        cancelPendingConfirmation()
+        speaker.stop()
+        agent.reset()
+        lines.removeAll()
+        phase = .idle
+    }
 
     /// Reset albo zmiana Ustawień w czasie pytania o potwierdzenie: odpowiedź „nie” bez śladu
     /// w rozmowie. Inaczej po 15 s limit czasu zatrzymałby mikrofon nowego nasłuchu
@@ -114,12 +125,18 @@ final class AssistantSession: ActionConfirmer {
 
     /// Pyta głosem i czeka na „tak”/„nie” (głos lub przyciski). Cisza = odmowa.
     func confirm(_ question: String) async -> Bool {
+        let asked = conversation
         lines.append(.init(role: .assistant, text: question))
         await speaker.speak(question)
+        // Reset albo zmiana Ustawień w czasie czytania pytania: rozmowa porzucona, bez pytania.
+        guard conversation == asked else { return false }
         phase = .confirming(question)
         transcript = ""
 
         return await withCheckedContinuation { c in
+            // Poprzednie pytanie (gdyby jeszcze czekało) dostaje „nie”, a jego limit czasu
+            // jest anulowany — inaczej continuation by wisiało, a stary limit zamknąłby to pytanie.
+            cancelPendingConfirmation()
             pendingConfirmation = c
             confirmationTimeout = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(15))
