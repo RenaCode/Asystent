@@ -15,22 +15,51 @@ const MAX_SYSTEM_CHARS = 20_000;
 const FALLBACK_BETA = "server-side-fallback-2026-07-01";
 const EFFORTS = new Set(["low", "medium", "high", "xhigh", "max"]);
 
-export function loadConfig(env = process.env) {
+// Modele (Opus/Sonnet/Haiku 5.5) mają limit wyjścia 128K, ale proxy nie streamuje (faza 2),
+// a SDK bez streamingu odrzuca max_tokens, przy których zapytanie mogłoby trwać > 10 min
+// (60 min × max_tokens / 128K). Powyżej tej granicy każde zapytanie kończyłoby się 502.
+// Uwaga: SDK ma też niższe limity per model (MODEL_NONSTREAMING_TOKENS, np. 8192 dla starych
+// nazw Opus 4 na Vertex/Bedrock) — przy takim MODEL trzeba zejść z MAX_TOKENS.
+const MAX_NONSTREAMING_TOKENS = Math.floor((128_000 * 10) / 60); // 21333
+
+/// Zmienna ustawiona na pusty napis (np. `PORT=` w .env) = brak wartości: domyślna + ostrzeżenie.
+function textEnv(env, name, fallback, warn) {
+  const raw = env[name];
+  if (raw === undefined) return fallback;
+  if (raw.trim() === "") {
+    warn(`${name} jest puste — używam domyślnego ${fallback}`);
+    return fallback;
+  }
+  return raw.trim();
+}
+
+/// Liczba całkowita z zakresu albo błąd startu. Bez Number()/parseInt: "abc" dawało NaN,
+/// "1e9" i "80abc" przechodziły po cichu.
+function intEnv(env, name, fallback, min, max, warn) {
+  const raw = textEnv(env, name, String(fallback), warn);
+  const value = /^\d+$/.test(raw) ? Number(raw) : NaN;
+  if (!(value >= min && value <= max)) {
+    throw new Error(`${name} musi być liczbą całkowitą ${min}–${max}, jest: ${JSON.stringify(env[name])}`);
+  }
+  return value;
+}
+
+export function loadConfig(env = process.env, warn = console.warn) {
   const appToken = env.APP_TOKEN ?? "";
   if (!env.ANTHROPIC_API_KEY) throw new Error("Ustaw ANTHROPIC_API_KEY (np. w proxy/.env)");
   if (appToken.length < 32 || appToken === "change-me") {
     throw new Error("APP_TOKEN musi mieć co najmniej 32 znaki (np. `openssl rand -hex 32`)");
   }
-  const effort = env.EFFORT ?? "low";
+  const effort = textEnv(env, "EFFORT", "low", warn);
   if (!EFFORTS.has(effort)) throw new Error(`Nieznany EFFORT=${effort}`);
   return {
-    port: Number(env.PORT ?? 8787),
-    host: env.HOST ?? "0.0.0.0",
+    port: intEnv(env, "PORT", 8787, 1, 65535, warn),
+    host: textEnv(env, "HOST", "0.0.0.0", warn),
     appToken,
-    model: env.MODEL ?? "claude-opus-5-5",
+    model: textEnv(env, "MODEL", "claude-opus-5-5", warn),
     effort,
-    maxTokens: Number(env.MAX_TOKENS ?? 16000),
-    rateLimit: Number(env.RATE_LIMIT_PER_MIN ?? 30),
+    maxTokens: intEnv(env, "MAX_TOKENS", 16000, 1, MAX_NONSTREAMING_TOKENS, warn),
+    rateLimit: intEnv(env, "RATE_LIMIT_PER_MIN", 30, 1, 100_000, warn),
   };
 }
 
