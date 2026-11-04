@@ -21,6 +21,11 @@ final class AgentLoop {
     private(set) var history: [Message] = []
     private var system: String
     let maxSteps = 8
+    /// Numer rozmowy: `reset()` go podbija, więc tura sprzed Resetu wie, że jej wynik
+    /// należy do porzuconej rozmowy i nie może dotykać nowej historii.
+    private var generation = 0
+    /// Rozmowa (`generation`), której tura właśnie trwa; `nil` = żadna.
+    private var runningGeneration: Int?
 
     init(client: any LLMClient, registry: ToolRegistry, confirmer: (any ActionConfirmer)? = nil,
          now: @escaping @Sendable () -> Date = { .now }) {
@@ -32,12 +37,22 @@ final class AgentLoop {
     }
 
     func reset() {
+        generation += 1
         history.removeAll()
         system = Self.systemPrompt()
     }
 
     func run(userText: String) async throws -> String {
+        // Jedna tura naraz: druga przeplatałaby historię (np. `tool_use` bez `tool_result`).
+        guard runningGeneration != generation else { throw AgentError.busy }
+        let gen = generation
+        runningGeneration = gen
+        defer { if runningGeneration == gen { runningGeneration = nil } }
         let checkpoint = history.count
+        /// Po Resecie w trakcie tury historia jest już pusta i należy do nowej rozmowy.
+        func ensureCurrent() throws { guard generation == gen else { throw CancellationError() } }
+        func rollBack() { if generation == gen { history.removeSubrange(checkpoint...) } }
+
         history.append(Message(role: "user", content: [
             .text("[\(String(localized: "Current time")): \(now().formatted(Date.ISO8601FormatStyle(timeZone: .current)))]"),
             .text(userText),
@@ -46,13 +61,16 @@ final class AgentLoop {
         do {
             for _ in 0..<maxSteps {
                 let resp = try await client.send(.init(system: system, messages: history, tools: registry.specs))
+                try ensureCurrent()
 
                 switch resp.stop_reason {
                 case "tool_use":
                     let calls = resp.content.filter { $0.type == "tool_use" }
                     guard !calls.isEmpty else { throw AgentError.malformedResponse }
                     history.append(Message(role: "assistant", content: resp.content))
-                    history.append(Message(role: "user", content: await runTools(calls)))
+                    let results = await runTools(calls)
+                    try ensureCurrent()
+                    history.append(Message(role: "user", content: results))
 
                 case "end_turn", "stop_sequence":
                     history.append(Message(role: "assistant", content: resp.content))
@@ -66,12 +84,12 @@ final class AgentLoop {
                 case "refusal":
                     // Odmowa (także po fallbacku): treść może być częściowa — nie czytamy jej
                     // i wycofujemy całą turę, żeby nie zostawić jej w historii.
-                    history.removeSubrange(checkpoint...)
+                    rollBack()
                     return Replies.refusal
 
                 case "max_tokens", "model_context_window_exceeded":
                     // Ucięta odpowiedź: niedokończonych wywołań narzędzi nie wykonujemy.
-                    history.removeSubrange(checkpoint...)
+                    rollBack()
                     let text = Self.text(of: resp)
                     return text.isEmpty ? Replies.truncated : text
 
@@ -80,10 +98,10 @@ final class AgentLoop {
                 }
             }
         } catch {
-            history.removeSubrange(checkpoint...)
+            rollBack()
             throw error
         }
-        history.removeSubrange(checkpoint...)
+        rollBack()
         return Replies.tooManySteps
     }
 
@@ -120,9 +138,12 @@ final class AgentLoop {
     }
 
     enum AgentError: LocalizedError, Equatable {
+        /// Poprzednia tura jeszcze trwa (np. czeka na odpowiedź albo na potwierdzenie).
+        case busy
         case malformedResponse, unexpectedStopReason(String)
         var errorDescription: String? {
             switch self {
+            case .busy: String(localized: "Hejo is still working on the previous request.")
             case .malformedResponse: String(localized: "The model returned an invalid response.")
             case .unexpectedStopReason(let r): String(localized: "Unexpected model stop reason: \(r)")
             }
